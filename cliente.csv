@@ -1,0 +1,2 @@
+id,nome,idade,segmento,scoreCredito,scoreSeguranca,rendaMensal,limiteDisponivel,creditoPreAprovado,risco,pontualidadePagamentos,usoLimiteCredito,endividamentoAtual,estabilidadeFinanceira,cdb,tesouro,fundo,previdencia,emprestimosAtivos,quitacoesAntecipadas,atrasosUltimos12M
+101,Mariana Almeida Ferreira,34,Premium,812,97,12500,28000,85000,baixo,0.96,0.42,0.18,alta,45000,20000,15000,30000,1,3,0
