@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saldi Security AI - Bradesco Portal Interno</title>
+    <style>
+        :root {
+            --bg-principal: #050a14;
+            --bg-card: rgba(13, 27, 42, 0.65);
+            --cor-neon: #00f2ff;
+            --cor-bradesco: #cc092f;
+            --texto-principal: #ffffff;
+            --texto-secundario: #a0aec0;
+            --borda-glass: rgba(0, 242, 255, 0.15);
+            --cor-sucesso: #00a896;
+            --cor-alerta: #ffb703;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-principal);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 119, 182, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(204, 9, 47, 0.08) 0px, transparent 50%);
+            color: var(--texto-principal);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* PAINEL DO FUNCIONÁRIO BRADESCO */
+        .painel-funcionario {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--cor-neon);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .painel-titulo {
+            color: var(--cor-neon);
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .seletor-persona {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-persona {
+            flex: 1;
+            background: #0d1f36;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .btn-persona.ativo {
+            background: var(--cor-sucesso);
+            border-color: var(--cor-neon);
+            box-shadow: 0 0 8px rgba(0, 168, 150, 0.4);
+        }
+
+        /* Container Principal com efeito Glassmorphism */
+        .container {
+            width: 100%;
+            max-width: 480px;
+            height: 75vh;
+            min-height: 520px;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--borda-glass);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            transition: border 0.3s ease;
+        }
+
+        /* Estado Visual de Bloqueio/Trava */
+        .container.travado {
+            border: 2px solid var(--cor-bradesco);
+            box-shadow: 0 0 25px rgba(204, 9, 47, 0.4);
+        }
+
+        /* Cabeçalho do Agente */
+        .header {
+            padding: 20px;
+            background: rgba(5, 10, 20, 0.8);
+            border-bottom: 1px solid var(--borda-glass);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .header.travado {
+            background: rgba(40, 5, 10, 0.95);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--cor-neon), #0077b6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #050a14;
+            font-size: 22px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        }
+
+        .avatar.travado {
+            background: var(--cor-bradesco);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(204, 9, 47, 0.6);
+        }
+
+        .header-info h2 { 
+            font-size: 18px; 
+            font-weight: 600; 
+            letter-spacing: 0.5px; 
+        }
+        
+        .header-info p { 
+            font-size: 11px; 
+            color: var(--cor-neon); 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            margin-top: 2px; 
+            letter-spacing: 1px; 
+        }
+        
+        /* Área de Mensagens */
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-box::-webkit-scrollbar { width: 5px; }
+        .chat-box::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-line;
+            animation: surgimento 0.3s ease-out;
+        }
+
+        @keyframes surgimento {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #005f73, #00a896);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 168, 150, 0.15);
+        }
+
+        .message.bot {
+            background-color: #132237;
+            color: #f7fafc;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .message.security-alert {
+            background-color: rgba(204, 9, 47, 0.15);
+            border: 1px solid var(--cor-bradesco);
+            color: #ffcccc;
+            align-self: center;
+            max-width: 95%;
+            border-radius: 12px;
+            font-size: 13px;
+        }
+
+        .message.bot strong { color: var(--cor-neon); }
+
+        /* ESTILOS DO DASHBOARD DE SCORE */
+        .dashboard-score {
+            background: rgba(9, 21, 36, 0.9);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 16px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-circle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--cor-sucesso) 0% 81%, #1a304d 81% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-inner {
+            width: 84%;
+            height: 84%;
+            background: #091524;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1;
+        }
+
+        .gauge-label {
+            font-size: 10px;
+            color: var(--cor-sucesso);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .db-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .db-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .db-card-title {
+            font-size: 10px;
+            color: var(--texto-secundario);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .db-card-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Chips */
+        .chips-container {
+            padding: 0 16px 10px 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .chips-container::-webkit-scrollbar { height: 4px; }
+        
+        .chip {
+            background: rgba(0, 242, 255, 0.08);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+        .chip:hover {
+            background: var(--cor-neon);
+            color: #050a14;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        /* Input e Botão */
+        .footer-input {
+            padding: 16px;
+            background: rgba(5, 10, 20, 0.6);
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .input-wrapper { flex: 1; position: relative; }
+
+        input {
+            width: 100%;
+            background-color: #091524;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: var(--texto-principal);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        input:focus { border-color: var(--cor-neon); box-shadow: 0 0 12px rgba(0, 242, 255, 0.25); background-color: #0d1f36; }
+        input:disabled { background-color: #1a080b; border-color: var(--cor-bradesco); color: var(--texto-secundario); cursor: not-allowed; }
+
+        button {
+            background-color: var(--cor-bradesco);
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            padding: 0 22px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(204, 9, 47, 0.2);
+        }
+        button:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(204, 9, 47, 0.35); }
+        button:disabled { background-color: #331116; color: #66222c; cursor: not-allowed; box-shadow: none; }
+
+        .badge-seguranca {
+            text-align: center;
+            font-size: 10px;
+            color: var(--texto-secundario);
+            padding: 0 10px 12px 10px;
+            background: rgba(5, 10, 20, 0.6);
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+<!-- MENU EXCLUSIVO PARA CONTROLE DOS FUNCIONÁRIOS DO BRADESCO -->
+<div class="painel-funcionario">
+    <div class="painel-titulo">🛠️ Painel de Controle (Exclusivo Funcionário Bradesco)</div>
+    <div style="margin-bottom: 8px; color: var(--texto-secundario);">Selecione a diretriz de rigor da IA para esta sessão:</div>
+    <div class="seletor-persona">
+        <button class="btn-persona ativo" id="pPadrao" onclick="mudarModoIA('padrao')">Modo Comercial</button>
+        <button class="btn-persona" id="pRestritivo" onclick="mudarModoIA('restritivo')">Modo Alta Segurança</button>
+        <button class="btn-persona" id="pAuditoria" onclick="mudarModoIA('auditoria')">Modo Auditoria/Logs</button>
+    </div>
+</div>
+
+<div class="container" id="chatContainer">
+    <div class="header" id="chatHeader">
+        <div class="avatar" id="chatAvatar">S</div>
+        <div class="header-info">
+            <h2>Saldi Security AI</h2>
+            <p id="subtituloAI">GenIA & Cybersegurança • Modo Comercial</p>
+        </div>
+    </div>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">Olá, Mariana Almeida! Sou o Saldi. Fui integrado com bases de dados analíticas e diretrizes rígidas de Cybersegurança do Bradesco.
+
+Como posso te ajudar a tomar a melhor decisão financeira hoje de forma 100% segura?</div>
+    </div>
+
+    <!-- Chips de Atalho -->
+    <div class="chips-container" id="chipsContainer">
+        <div class="chip" onclick="clicarChip('Quero simular um empréstimo')">💰 Simular Crédito</div>
+        <div class="chip" onclick="clicarChip('Como consultar meu Score?')">📊 Consultar Meu Score</div>
+        <div class="chip" onclick="clicarChip('Dicas de segurança contra fraudes')">🔒 Dicas de Segurança</div>
+        <div class="chip" onclick="clicarChip('Como meus dados estão protegidos?')">🛡️ LGPD e Privacidade</div>
+    </div>
+
+    <div class="footer-input">
+        <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="Pergunte sobre crédito ou simulação..." onkeypress="checarEnter(event)" autocomplete="off">
+        </div>
+        <button id="sendBtn" onclick="enviarMensagem()">Enviar</button>
+    </div>
+    
+    <div class="badge-seguranca" id="sessionTimer">
+        🔒 Conexão Criptografada • Proteção de Sessão Ativa
+    </div>
+</div>
+
+<script>
+    const CLIENTE = {
+        nome: "Mariana Almeida",
+        scoreCredito: 812, 
+        rendaMensal: 12500
+    };
+
+    let estadoSimulacao = {
+        etapa: "inicio", 
+        valor: 0,
+        prazo: 0
+    };
+
+    let modoOperacaoIA = "padrao"; 
+    let inatividadeTimeout;
+    const TEMPO_LIMITE_INATIVIDADE = 120000; 
+
+    function mudarModoIA(novoModo) {
+        modoOperacaoIA = novoModo;
+        
+        document.getElementById('pPadrao').classList.remove('ativo');
+        document.getElementById('pRestritivo').classList.remove('ativo');
+        document.getElementById('pAuditoria').classList.remove('ativo');
+
+        const subtitulo = document.getElementById('subtituloAI');
+
+        if(novoModo === 'padrao') {
+            document.getElementById('pPadrao').classList.add('ativo');
+            subtitulo.innerText = "GenIA & Cybersegurança • Modo Comercial";
+        } else if(novoModo === 'restritivo') {
+            document.getElementById('pRestritivo').classList.add('ativo');
+            subtitulo.innerText = "GenIA & Cybersegurança • Alta Segurança";
+        } else if(novoModo === 'auditoria') {
+            document.getElementById('pAuditoria').classList.add('ativo');
+            subtitulo.innerText = "GenIA & Cybersegurança • Modo Auditoria";
+        }
+        
+        destravarChatUIVisual();
+        resetarETelaLimpa();
+    }
+
+    function resetarTimerInatividade() {
+        if (estadoSimulacao.etapa === "bloqueado_antifraude") return;
+        clearTimeout(inatividadeTimeout);
+        inatividadeTimeout = setTimeout(() => {
+            resetarETelaLimpaPorInatividade();
+        }, TEMPO_LIMITE_INATIVIDADE);
+    }
+
+    resetarTimerInatividade();
+    document.addEventListener("click", resetarTimerInatividade);
+    document.addEventListener("keypress", resetarTimerInatividade);
+
+    function checarEnter(event) {
+        if (event.key === 'Enter') enviarMensagem();
+    }
+
+    function clicarChip(textoFrase) {
+        if (estadoSimulacao.etapa === "bloqueado_antifraude") return;
+        document.getElementById('userInput').value = textoFrase;
+        enviarMensagem();
+    }
+
+    function sanitizarEntrada(stringIncomum) {
+        const mapaCaracteres = {
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '/': '&#x2F;', '`': '&#x60;'
+        };
+        return stringIncomum.replace(/[&<>"'`/]/g, function (s) { return mapaCaracteres[s]; });
+    }
+
+    // Mascaramento apenas visual para a interface do usuário
+    function aplicarMascaramentoDeDados(texto) {
+        let msgBaixa = texto.toLowerCase().trim();
+        
+        // Se a resposta for puramente numérica (ex: valor do empréstimo), não aplica mascara na exibição
+        if (/^\d+$/.test(msgBaixa)) {
+            return texto;
+        }
+        
+        // Se contiver palavras explícitas de credenciais, oculta o trecho seguinte
+        let txt = texto.replace(/(senha|token|cvv)[:\s]+[a-zA-Z0-9_]+/gi, "$1: [DADO PROTEGIDO]");
+        
+        // Oculta números muito longos espalhados em frases (padrão de cartões: 13 a 16 dígitos)
+        txt = txt.replace(/\b\d{13,16}\b/g, "[DADO PROTEGIDO]");
+        
+        return txt;
+    }
+
+    function enviarMensagem() {
+        if (estadoSimulacao.etapa === "bloqueado_antifraude") return;
+
+        const input = document.getElementById('userInput');
+        let textoOriginal = input.value.trim();
+        
+        if (!textoOriginal) return;
+
+        let textoSanitizado = sanitizarEntrada(textoOriginal);
+        let textoMascarado = aplicarMascaramentoDeDados(textoSanitizado);
+
+        adicionarMensagem(textoMascarado, 'user');
+        input.value = '';
+
+        const idIndicador = adicionarIndicadorPensando();
+
+        setTimeout(() => {
+            removerIndicadorPensando(idIndicador);
+            
+            // Enviamos o input original sanitizado para a árvore de decisões da IA
+            const respostaIA = processarLógicaIA(textoSanitizado);
+            
+            if (respostaIA !== null) {
+                adicionarMensagem(respostaIA, 'bot');
+            }
+        }, 600);
+    }
+
+    function aplicarTravaAntifraudeVisual() {
+        document.getElementById('chatContainer').classList.add('travado');
+        document.getElementById('chatHeader').classList.add('travado');
+        document.getElementById('chatAvatar').classList.add('travado');
+        document.getElementById('subtituloAI').innerText = "🚨 SESSÃO CONGELADA POR FRAUDE";
+        document.getElementById('subtituloAI').style.color = "#ff4d4d";
+        
+        document.getElementById('userInput').disabled = true;
+        document.getElementById('userInput').placeholder = "Acesso bloqueado pelo Security Engine.";
+        document.getElementById('sendBtn').disabled = true;
+        document.getElementById('chipsContainer').style.opacity = "0.3";
+        document.getElementById('sessionTimer').innerHTML = "🛑 Bloqueio preventivo ativado. Código de erro: ERR_SEC_FRAUD_85";
+        document.getElementById('sessionTimer').style.color = "#ff4d4d";
+    }
+
+    function destravarChatUIVisual() {
+        document.getElementById('chatContainer').classList.remove('travado');
+        document.getElementById('chatHeader').classList.remove('travado');
+        document.getElementById('chatAvatar').classList.remove('travado');
+        document.getElementById('subtituloAI').style.color = "var(--cor-neon)";
+        
+        document.getElementById('userInput').disabled = false;
+        document.getElementById('userInput').placeholder = "Pergunte sobre crédito ou simulação...";
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('chipsContainer').style.opacity = "1";
+        document.getElementById('sessionTimer').style.color = "var(--texto-secundario)";
+    }
+
+    function resetarETelaLimpa() {
+        estadoSimulacao.etapa = "inicio";
+        estadoSimulacao.valor = 0;
+        estadoSimulacao.prazo = 0;
+
+        const chatBox = document.getElementById('chatBox');
+        chatBox.innerHTML = '';
+        adicionarMensagem(`Olá, ${CLIENTE.nome}! Sessão configurada com sucesso para o modo [${modoOperacaoIA.toUpperCase()}]. Como posso te ajudar hoje?`, 'bot');
+    }
+
+    function resetarETelaLimpaPorInatividade() {
+        estadoSimulacao.etapa = "inicio";
+        const chatBox = document.getElementById('chatBox');
+        chatBox.innerHTML = '';
+
+        const divAlerta = document.createElement('div');
+        divAlerta.className = 'message security-alert';
+        divAlerta.innerHTML = "⚠️ **SESSÃO ENCERRADA:** O chat ficou inativo. Os dados foram destruídos para segurança local.";
+        chatBox.appendChild(divAlerta);
+
+        adicionarMensagem(`Olá, ${CLIENTE.nome}! Sessão reiniciada de forma segura. Como posso te ajudar hoje?`, 'bot');
+    }
+
+    function registrarLogAuditoria(tipoAtaque, comando) {
+        if (modoOperacaoIA === "auditoria") {
+            const chatBox = document.getElementById('chatBox');
+            const divLog = document.createElement('div');
+            divLog.className = 'message security-alert';
+            divLog.style.backgroundColor = '#1c1114';
+            divLog.style.borderColor = '#ff3333';
+            divLog.innerHTML = `⚙️ **LOG DE AUDITORIA INTERNA:**<br>• **Evento:** ${tipoAtaque}<br>• **Comando Capturado:** <span style="color: #ff4d4d; font-family: monospace;">"${comando}"</span><br>• **Ação:** Interceptação Ativa e Resposta de Hardening.`;
+            chatBox.appendChild(divLog);
+        }
+    }
+
+    const BASE_CONHECIMENTO = {
+        "score": `📊 **Análise de Dados:** Encontramos seu perfil em nossa base analítica criptografada. Veja seu relatório de saúde financeira:
+        
+        <div class="dashboard-score">
+            <div class="gauge-container">
+                <div class="gauge-circle">
+                    <div class="gauge-inner">
+                        <span class="gauge-value">${CLIENTE.scoreCredito}</span>
+                        <span class="gauge-label">Excelente</span>
+                    </div>
+                </div>
+            </div>
+            <div class="db-grid">
+                <div class="db-card">
+                    <div class="db-card-title">Perfil de Risco</div>
+                    <div class="db-card-value" style="color: #00a896;">Muito Baixo</div>
+                </div>
+                <div class="db-card">
+                    <div class="db-card-title">Taxa Estimada</div>
+                    <div class="db-card-value">1,99% a.m.</div>
+                </div>
+            </div>
+        </div>
+        
+        Com essa pontuação **Premium**, você se qualifica automaticamente para prioridade de liberação nas linhas de crédito Bradesco.
+        
+        **Próxima decisão:** Deseja aproveitar este perfil para fazer uma simulação de crédito personalizada? (Responda **Sim** ou **Não**).`,
+        
+        "seguranca": `🔒 **Diretriz de Cybersegurança:** O Bradesco **NUNCA** solicita senhas de cartão, chaves Pix, tokens ou o código CVV por chats, redes sociais ou telefone.\n\nSe receber um contato suspeito alegando "erro no sistema", desconfie. Nossos sistemas contam com criptografia de dados avançada contra fraudes.\n\n**Próxima decisão:** Quer entender melhor como nossa IA protege seus dados? (Responda **Sim** ou **Não**).`,
+        
+        "lgpd": `🛡️ **Compliance & LGPD:** Todas as consultas realizadas nesta simulação utilizam criptografia ponta a ponta e anonimização de dados pessoais sensíveis, seguindo as regras da Lei Geral de Proteção de Dados.\n\n**Próxima decisão:** Que tal simular um crédito seguro agora? (Responda **Sim** para simular ou **Não** para voltar).`
+    };
+
+    function processarLógicaIA(mensagem) {
+        const msg = messageTratada = mensagem.toLowerCase().trim();
+
+        if (estadoSimulacao.etapa === "bloqueado_antifraude") {
+            return "Sessão bloqueada administrativamente.";
+        }
+
+        // 1. PRIORIDADE MÁXIMA: DETECÇÃO DE INJECTION MALICIOSA
+        const padroesAtaque = ["ignore as instru", "ignore as regras", "system prompt", "developer mode", "modo desenvolvedor"];
+        if (padroesAtaque.some(p => msg.includes(p))) {
+            registrarLogAuditoria("Prompt Injection / Jailbreak", mensagem);
+            return "🛡️ **NÚCLEO DE CYBERSEGURANÇA:** Tentativa de alteração de comportamento detectada. As diretrizes analíticas corporativas do Bradesco não podem ser sobrescritas.";
+        }
+
+        // 2. PRIORIDADE CRÍTICA: VERIFICAÇÃO DO MODO HIGH SECURITY PARA VALOR ESTOURADO
+        if (modoOperacaoIA === "restritivo" && estadoSimulacao.etapa === "aguardando_valor") {
+            const extrairNumero = msg.match(/\d+/);
+            if (extrairNumero && parseInt(extrairNumero[0]) > 85000) {
+                 estadoSimulacao.etapa = "bloqueado_antifraude";
+                 registrarLogAuditoria("Trava Antifraude - Estouro de Limite em Modo Restritivo", mensagem);
+                 aplicarTravaAntifraudeVisual();
+                 return "🚨 **TRAVA ANTIFRAUDE BRADESCO:** Foram detectadas múltiplas requisições inconsistentes com o perfil analítico aprovado ou estouro de limite crítico de segurança no Modo Restritivo.\n\nEsta sessão foi **congelada temporariamente** para impedir vazamento de dados. Entre em contato com seu Gerente de Contas ou utilize o canal oficial de Ouvidoria.";
+            }
+        }
+
+        // 3. SEGUNDA PRIORIDADE: DETECÇÃO DE VAZAMENTO DE CREDENCIAIS REAIS (SENHAS/TOKENS/CARTÕES)
+        // Ignora checar se for APENAS o número puro do fluxo de crédito para não dar falso positivo
+        if (!/^\d+$/.test(msg)) {
+            if (["senha", "token", "cvv", "cartao", "cartão"].some(p => msg.includes(p)) || msg.match(/\b\d{7,16}\b/)) {
+                registrarLogAuditoria("Vazamento de Credenciais/Dados Confidenciais", mensagem);
+                return "🚨 **ALERTA DE SEGURANÇA:** Detectamos a digitação de dados confidenciais (ou padrões numéricos semelhantes a senhas/tokens). Por motivos de compliance regulatório, **nunca forneça esses dados em canais de chat**.";
+            }
+        }
+
+        // 4. FLUXO CONVENCIONAL DA IA (Decisões de simulação e navegação)
+        if (estadoSimulacao.etapa === "verificando_interesse_seguranca") {
+            if (msg === "nao" || msg === "não" || msg.includes("nao") || msg.includes("não")) {
+                resetarETelaLimpa();
+                return null;
+            } else if (msg === "sim" || msg.includes("sim") || msg.includes("quero")) {
+                estadoSimulacao.etapa = "inicio"; 
+                return BASE_CONHECIMENTO.lgpd;
+            } else {
+                return "❓ Por favor, responda **Sim** para ver os detalhes da IA ou **Não** para limpar a sessão.";
+            }
+        }
+
+        if (estadoSimulacao.etapa === "verificando_interesse_score") {
+            if (msg === "nao" || msg === "não" || msg.includes("nao") || msg.includes("não")) {
+                resetarETelaLimpa();
+                return null; 
+            } else if (msg === "sim" || msg.includes("sim") || msg.includes("quero")) {
+                estadoSimulacao.etapa = "aguardando_valor";
+                return `💰 **Perfeito! Vamos iniciar sua Simulação Personalizada.**\n\nIdentifiquei que seu perfil é elegível para o **Crédito Pessoal Pré-Aprovado** de até R$ 85.000.\n\nPara começar, **qual o valor total do empréstimo** que você deseja simular? (Ex: 10000)`;
+            } else {
+                return "❓ Por favor, responda **Sim** para prosseguir com a simulação ou **Não** para limpar a sessão.";
+            }
+        }
+
+        if (estadoSimulacao.etapa === "aguardando_valor") {
+            const numero = msg.match(/\d+/);
+            if (numero) {
+                estadoSimulacao.valor = parseInt(numero[0]);
+                
+                if (estadoSimulacao.valor > 150000) {
+                     return `⚠️ O valor solicitado excede o limite pré-aprovado de segurança. Por favor, digite um valor menor até **R$ 85.000**:`;
+                }
+
+                estadoSimulacao.etapa = "aguardando_prazo";
+                return `💰 **Etapa 2 de 3:** Perfeito! Entendido que deseja solicitar **R$ ${estadoSimulacao.valor.toLocaleString('pt-BR')}**.\n\nEm quantas parcelas mensais você gostaria de pagar? (Escolha de 12 a 72 meses).`;
+            } else {
+                return "❌ Por favor, informe apenas o valor em números (ex: 15000).";
+            }
+        }
+
+        if (estadoSimulacao.etapa === "aguardando_prazo") {
+            const numero = msg.match(/\d+/);
+            if (numero) {
+                estadoSimulacao.prazo = parseInt(numero[0]);
+                if (estadoSimulacao.prazo < 12 || estadoSimulacao.prazo > 72) {
+                    return "⚠️ O prazo selecionado deve estar compreendido entre **12 e 72 meses**. Quantas parcelas deseja?";
+                }
+
+                const taxaMensal = CLIENTE.scoreCredito > 750 ? 0.0199 : 0.0297; 
+                const jurosTotal = estadoSimulacao.valor * taxaMensal * estadoSimulacao.prazo;
+                const totalPagar = estadoSimulacao.valor + jurosTotal;
+                const valorParcela = totalPagar / estadoSimulacao.prazo;
+
+                estadoSimulacao.etapa = "aguardando_confirmacao";
+
+                return `📊 **Simulação de Crédito Concluída com Sucesso!**\n\n• **Valor solicitado:** R$ ${estadoSimulacao.valor.toLocaleString('pt-BR')}\n• **Prazo de amortização:** ${estadoSimulacao.prazo} meses\n• **Valor da Parcela Estimada:** R$ ${valorParcela.toFixed(2).toLocaleString('pt-BR')}\n\n🛡️ **Próxima decisão:** Gostaria de confirmar o envio desta simulação para análise de documentos no seu App Bradesco Celular? (Responda **Sim** ou **Não**).`;
+            } else {
+                return "❌ Por favor, digite o prazo desejado em números de meses (ex: 36).";
+            }
+        }
+
+        if (estadoSimulacao.etapa === "aguardando_confirmacao") {
+            if (msg === "nao" || msg === "não" || msg.includes("nao") || msg.includes("não")) {
+                resetarETelaLimpa();
+                return null; 
+            } else if (msg === "sim" || msg.includes("sim") || msg.includes("quero")) {
+                estadoSimulacao.etapa = "inicio";
+                return "🚀 **Simulação Enviada!** Os dados analíticos foram direcionados para o seu App Bradesco Celular em segurança via validação biométrica em background. Obrigado!";
+            }
+        }
+
+        if (["segurança", "seguro", "fraude", "golpe", "dicas"].some(p => msg.includes(p))) {
+            estadoSimulacao.etapa = "verificando_interesse_seguranca";
+            return BASE_CONHECIMENTO.seguranca;
+        }
+
+        if (["score", "pontuação", "serasa", "consultar"].some(p => msg.includes(p))) {
+            estadoSimulacao.etapa = "verificando_interesse_score";
+            return BASE_CONHECIMENTO.score;
+        }
+
+        if (["credito", "emprestimo", "simular", "simulacao"].some(p => msg.includes(p))) {
+            estadoSimulacao.etapa = "aguardando_valor";
+            return `💰 **Iniciando Assistente de Simulação Segura**\n\nPara começar, **qual o valor total do empréstimo** que você deseja simular? (Ex: 10000)`;
+        }
+
+        if (["lgpd", "dados", "privacidade"].some(p => msg.includes(p))) return BASE_CONHECIMENTO.lgpd;
+
+        return "Desculpe, eu sou o Saldi, um assistente voltado a **Crédito Seguro e Proteção Cibernética**. Utilize os botões rápidos acima para navegar.";
+    }
+
+    function adicionarMensagem(texto, remetente) {
+        const chatBox = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        div.className = `message ${remetente}`;
+        div.innerHTML = remetente === 'bot' ? formatarTextoBot(texto) : texto;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function adicionarIndicadorPensando() {
+        const chatBox = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        const id = 'pensando_' + Date.now();
+        div.id = id;
+        div.className = 'message bot';
+        div.style.opacity = '0.6';
+        div.innerText = 'Saldi processando requisição segura...';
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return id;
+    }
+
+    function removerIndicadorPensando(id) {
+        const indicador = document.getElementById(id);
+        if (indicador) indicador.remove();
+    }
+
+    function formatarTextoBot(texto) {
+        return texto.replace(/\*\frac{}{}\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+</script>
+</body>
+</html>
